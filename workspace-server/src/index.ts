@@ -582,6 +582,43 @@ async function main() {
   );
 
   server.registerTool(
+    'drive.replyToComment',
+    {
+      description:
+        'Replies to a comment on a Google Drive file. Use drive.listComments to get comment IDs first.',
+      inputSchema: {
+        fileId: z
+          .string()
+          .describe('The ID or URL of the file containing the comment.'),
+        commentId: z
+          .string()
+          .describe('The ID of the comment to reply to.'),
+        content: z
+          .string()
+          .describe('The reply text.'),
+      },
+    },
+    driveService.replyToComment,
+  );
+
+  server.registerTool(
+    'drive.resolveComment',
+    {
+      description:
+        'Resolves (closes) a comment on a Google Drive file.',
+      inputSchema: {
+        fileId: z
+          .string()
+          .describe('The ID or URL of the file containing the comment.'),
+        commentId: z
+          .string()
+          .describe('The ID of the comment to resolve.'),
+      },
+    },
+    driveService.resolveComment,
+  );
+
+  server.registerTool(
     'calendar.list',
     {
       description: "Lists all of the user's calendars.",

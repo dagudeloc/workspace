@@ -380,6 +380,58 @@ export class DriveService {
     };
   };
 
+  public replyToComment = async ({
+    fileId,
+    commentId,
+    content,
+  }: {
+    fileId: string;
+    commentId: string;
+    content: string;
+  }) => {
+    const drive = await this.getDriveClient();
+    const id = extractDocumentId(fileId);
+    const res = await drive.replies.create({
+      fileId: id,
+      commentId,
+      fields: 'id, content, author(displayName, emailAddress), createdTime',
+      requestBody: { content },
+    });
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify(res.data),
+        },
+      ],
+    };
+  };
+
+  public resolveComment = async ({
+    fileId,
+    commentId,
+  }: {
+    fileId: string;
+    commentId: string;
+  }) => {
+    const drive = await this.getDriveClient();
+    const id = extractDocumentId(fileId);
+    await drive.comments.update({
+      fileId: id,
+      commentId,
+      fields: 'id, resolved',
+      requestBody: { resolved: true },
+    });
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify({ commentId, resolved: true }),
+        },
+      ],
+    };
+  };
+
   public downloadFile = async ({
     fileId,
     localPath,
