@@ -57,7 +57,7 @@ const SCOPES = [
   'https://www.googleapis.com/auth/gmail.modify',
   'https://www.googleapis.com/auth/directory.readonly',
   'https://www.googleapis.com/auth/presentations.readonly',
-  'https://www.googleapis.com/auth/spreadsheets.readonly',
+  'https://www.googleapis.com/auth/spreadsheets',
 ];
 
 // Dynamically import version from package.json
@@ -497,6 +497,65 @@ async function main() {
       ...readOnlyToolProps,
     },
     sheetsService.getMetadata,
+  );
+
+  server.registerTool(
+    'sheets.create',
+    {
+      description:
+        'Creates a new Google Sheets spreadsheet with an optional title and sheet names.',
+      inputSchema: {
+        title: z
+          .string()
+          .optional()
+          .describe('The title for the new spreadsheet (default: "Untitled spreadsheet").'),
+        sheetNames: z
+          .array(z.string())
+          .optional()
+          .describe('Names for the sheets/tabs to create (default: ["Sheet1"]).'),
+      },
+    },
+    sheetsService.create,
+  );
+
+  server.registerTool(
+    'sheets.updateRange',
+    {
+      description:
+        'Updates (writes) values to a range of cells in a Google Sheets spreadsheet. Creates or overwrites cell values.',
+      inputSchema: {
+        spreadsheetId: z
+          .string()
+          .describe('The ID or URL of the spreadsheet.'),
+        range: z
+          .string()
+          .describe('The A1 notation range to update (e.g., "Sheet1!A1:B3").'),
+        values: z
+          .array(z.array(z.union([z.string(), z.number(), z.boolean(), z.null()])))
+          .describe('2D array of values to write (rows × columns). Example: [["Name","Age"],["Alice",30]]'),
+      },
+    },
+    sheetsService.updateRange,
+  );
+
+  server.registerTool(
+    'sheets.appendRows',
+    {
+      description:
+        'Appends rows after the last row with data in a sheet. Useful for adding new records without specifying exact cell positions.',
+      inputSchema: {
+        spreadsheetId: z
+          .string()
+          .describe('The ID or URL of the spreadsheet.'),
+        range: z
+          .string()
+          .describe('The A1 notation of the table to append to (e.g., "Sheet1!A:E").'),
+        values: z
+          .array(z.array(z.union([z.string(), z.number(), z.boolean(), z.null()])))
+          .describe('2D array of rows to append. Example: [["Alice",30],["Bob",25]]'),
+      },
+    },
+    sheetsService.appendRows,
   );
 
   server.registerTool(

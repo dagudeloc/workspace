@@ -310,4 +310,103 @@ export class SheetsService {
       };
     }
   };
+
+  public create = async ({
+    title = 'Untitled spreadsheet',
+    sheetNames,
+  }: {
+    title?: string;
+    sheetNames?: string[];
+  }) => {
+    const sheets = await this.getSheetsClient();
+    const requestBody: sheets_v4.Schema$Spreadsheet = {
+      properties: { title },
+    };
+    if (sheetNames?.length) {
+      requestBody.sheets = sheetNames.map((name) => ({
+        properties: { title: name },
+      }));
+    }
+    const res = await sheets.spreadsheets.create({
+      requestBody,
+      fields: 'spreadsheetId, spreadsheetUrl, properties.title, sheets.properties.title',
+    });
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify({
+            spreadsheetId: res.data.spreadsheetId,
+            spreadsheetUrl: res.data.spreadsheetUrl,
+            title: res.data.properties?.title,
+            sheets: res.data.sheets?.map((s) => s.properties?.title),
+          }),
+        },
+      ],
+    };
+  };
+
+  public updateRange = async ({
+    spreadsheetId,
+    range,
+    values,
+  }: {
+    spreadsheetId: string;
+    range: string;
+    values: (string | number | boolean | null)[][];
+  }) => {
+    const sheets = await this.getSheetsClient();
+    const id = extractDocId(spreadsheetId);
+    const res = await sheets.spreadsheets.values.update({
+      spreadsheetId: id,
+      range,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values },
+    });
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify({
+            updatedRange: res.data.updatedRange,
+            updatedRows: res.data.updatedRows,
+            updatedColumns: res.data.updatedColumns,
+            updatedCells: res.data.updatedCells,
+          }),
+        },
+      ],
+    };
+  };
+
+  public appendRows = async ({
+    spreadsheetId,
+    range,
+    values,
+  }: {
+    spreadsheetId: string;
+    range: string;
+    values: (string | number | boolean | null)[][];
+  }) => {
+    const sheets = await this.getSheetsClient();
+    const id = extractDocId(spreadsheetId);
+    const res = await sheets.spreadsheets.values.append({
+      spreadsheetId: id,
+      range,
+      valueInputOption: 'USER_ENTERED',
+      insertDataOption: 'INSERT_ROWS',
+      requestBody: { values },
+    });
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify({
+            updatedRange: res.data.updates?.updatedRange,
+            updatedRows: res.data.updates?.updatedRows,
+            updatedCells: res.data.updates?.updatedCells,
+          }),
+        },
+      ],
+    };
+  };
 }
