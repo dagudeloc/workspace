@@ -555,6 +555,33 @@ async function main() {
   );
 
   server.registerTool(
+    'drive.listComments',
+    {
+      description:
+        'Lists comments on a Google Drive file (Google Docs, Sheets, Slides). Returns comment text, author, replies, and resolution status.',
+      inputSchema: {
+        fileId: z
+          .string()
+          .describe('The ID or URL of the file to get comments from.'),
+        pageSize: z
+          .number()
+          .optional()
+          .describe('Max comments to return (default: 100).'),
+        pageToken: z
+          .string()
+          .optional()
+          .describe('Pagination token.'),
+        includeDeleted: z
+          .boolean()
+          .optional()
+          .describe('Include deleted comments (default: false).'),
+      },
+      ...readOnlyToolProps,
+    },
+    driveService.listComments,
+  );
+
+  server.registerTool(
     'calendar.list',
     {
       description: "Lists all of the user's calendars.",

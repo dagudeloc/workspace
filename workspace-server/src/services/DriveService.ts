@@ -346,6 +346,40 @@ export class DriveService {
     }
   };
 
+  public listComments = async ({
+    fileId,
+    pageSize = 100,
+    pageToken,
+    includeDeleted = false,
+  }: {
+    fileId: string;
+    pageSize?: number;
+    pageToken?: string;
+    includeDeleted?: boolean;
+  }) => {
+    const drive = await this.getDriveClient();
+    const id = extractDocumentId(fileId);
+    const res = await drive.comments.list({
+      fileId: id,
+      pageSize,
+      pageToken,
+      includeDeleted,
+      fields:
+        'nextPageToken, comments(id, content, author(displayName, emailAddress), createdTime, modifiedTime, resolved, quotedFileContent, replies(id, content, author(displayName, emailAddress), createdTime))',
+    });
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify({
+            comments: res.data.comments || [],
+            nextPageToken: res.data.nextPageToken,
+          }),
+        },
+      ],
+    };
+  };
+
   public downloadFile = async ({
     fileId,
     localPath,
